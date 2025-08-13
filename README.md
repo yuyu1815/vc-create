@@ -10,6 +10,15 @@
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
 
+> [!NOTE]
+> This project is in a **feature-freeze mode**, please read more about it [here](https://github.com/kkrypt0nn/Python-Discord-Bot-Template/issues/112). It can be summed up in a few bullet points:
+> 
+> * The project **will** receive bug fixes
+> * The project **will** be updated to make sure it works with the **latest** discord.py version
+> * The project **will not** receive any new features, **unless one of the following applies**:
+>   * A new feature is added to Discord and it would be beneficial to have it in the template
+>   * A feature got a breaking change, this fits with the same point that the project will **always** support the latest discord.py version
+
 This repository is a template that everyone can use for the start of their Discord bot.
 
 When I first started creating my Discord bot it took me a while to get everything setup and working with cogs and more.
