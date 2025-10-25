@@ -1,9 +1,9 @@
 """
 Copyright © Krypton 2019-Present - https://github.com/kkrypt0nn (https://krypton.ninja)
-Description:
-🐍 A simple template to start to code your own and personalized Discord bot in Python
+説明:
+🐍 独自のパーソナライズされたDiscordボットをPythonでコーディングするためのシンプルなテンプレート
 
-Version: 6.4.0
+バージョン: 6.4.0
 """
 
 import json
@@ -24,13 +24,13 @@ from database import DatabaseManager
 load_dotenv()
 
 """	
-Setup bot intents (events restrictions)
-For more information about intents, please go to the following websites:
+ボットインテントの設定（イベント制限）
+インテントの詳細については、以下のウェブサイトを参照してください：
 https://discordpy.readthedocs.io/en/latest/intents.html
 https://discordpy.readthedocs.io/en/latest/intents.html#privileged-intents
 
 
-Default Intents:
+デフォルトインテント:
 intents.bans = True
 intents.dm_messages = True
 intents.dm_reactions = True
@@ -44,13 +44,13 @@ intents.guild_typing = True
 intents.guilds = True
 intents.integrations = True
 intents.invites = True
-intents.messages = True # `message_content` is required to get the content of the messages
+intents.messages = True # メッセージの内容を取得するには`message_content`が必要です
 intents.reactions = True
 intents.typing = True
 intents.voice_states = True
 intents.webhooks = True
 
-Privileged Intents (Needs to be enabled on developer portal of Discord), please use them only if you need them:
+特権インテント（Discordの開発者ポータルで有効にする必要があります）、必要な場合のみ使用してください：
 intents.members = True
 intents.message_content = True
 intents.presences = True
@@ -59,14 +59,14 @@ intents.presences = True
 intents = discord.Intents.default()
 
 """
-Uncomment this if you want to use prefix (normal) commands.
-It is recommended to use slash commands and therefore not use prefix commands.
+プレフィックス（通常）コマンドを使用する場合は、これをコメント解除してください。
+スラッシュコマンドを使用することが推奨されるため、プレフィックスコマンドは使用しないでください。
 
-If you want to use prefix commands, make sure to also enable the intent below in the Discord developer portal.
+プレフィックスコマンドを使用する場合は、Discord開発者ポータルで以下のインテントも有効にしてください。
 """
 # intents.message_content = True
 
-# Setup both of the loggers
+# 両方のロガーを設定
 
 
 class LoggingFormatter(logging.Formatter):
@@ -126,12 +126,12 @@ class DiscordBot(commands.Bot):
             help_command=None,
         )
         """
-        This creates custom bot variables so that we can access these variables in cogs more easily.
+        これによりカスタムボット変数が作成され、cogsでこれらの変数に簡単にアクセスできるようになります。
 
-        For example, The logger is available using the following code:
-        - self.logger # In this class
-        - bot.logger # In this file
-        - self.bot.logger # In cogs
+        例えば、ロガーは以下のコードで利用可能です：
+        - self.logger # このクラス内
+        - bot.logger # このファイル内
+        - self.bot.logger # cogs内
         """
         self.logger = logger
         self.database = None
@@ -151,14 +151,14 @@ class DiscordBot(commands.Bot):
 
     async def load_cogs(self) -> None:
         """
-        The code in this function is executed whenever the bot will start.
+        この関数のコードは、ボットが起動するたびに実行されます。
         """
         for file in os.listdir(f"{os.path.realpath(os.path.dirname(__file__))}/cogs"):
             if file.endswith(".py"):
                 extension = file[:-3]
                 try:
                     await self.load_extension(f"cogs.{extension}")
-                    self.logger.info(f"Loaded extension '{extension}'")
+                    self.logger.info(f"拡張機能 '{extension}' を読み込みました")
                 except Exception as e:
                     exception = f"{type(e).__name__}: {e}"
                     self.logger.error(
@@ -168,7 +168,7 @@ class DiscordBot(commands.Bot):
     @tasks.loop(minutes=1.0)
     async def status_task(self) -> None:
         """
-        Setup the game status task of the bot.
+        ボットのゲームステータスタスクを設定します。
         """
         statuses = ["with you!", "with Krypton!", "with humans!"]
         await self.change_presence(activity=discord.Game(random.choice(statuses)))
@@ -176,19 +176,19 @@ class DiscordBot(commands.Bot):
     @status_task.before_loop
     async def before_status_task(self) -> None:
         """
-        Before starting the status changing task, we make sure the bot is ready
+        ステータス変更タスクを開始する前に、ボットが準備完了であることを確認します
         """
         await self.wait_until_ready()
 
     async def setup_hook(self) -> None:
         """
-        This will just be executed when the bot starts the first time.
+        これはボットが最初に起動したときに実行されます。
         """
-        self.logger.info(f"Logged in as {self.user.name}")
-        self.logger.info(f"discord.py API version: {discord.__version__}")
-        self.logger.info(f"Python version: {platform.python_version()}")
+        self.logger.info(f"{self.user.name} としてログインしました")
+        self.logger.info(f"discord.py APIバージョン: {discord.__version__}")
+        self.logger.info(f"Pythonバージョン: {platform.python_version()}")
         self.logger.info(
-            f"Running on: {platform.system()} {platform.release()} ({os.name})"
+            f"実行環境: {platform.system()} {platform.release()} ({os.name})"
         )
         self.logger.info("-------------------")
         await self.init_db()
@@ -202,9 +202,9 @@ class DiscordBot(commands.Bot):
 
     async def on_message(self, message: discord.Message) -> None:
         """
-        The code in this event is executed every time someone sends a message, with or without the prefix
+        このイベントのコードは、誰かがプレフィックスの有無にかかわらずメッセージを送信するたびに実行されます
 
-        :param message: The message that was sent.
+        :param message: 送信されたメッセージ。
         """
         if message.author == self.user or message.author.bot:
             return
@@ -212,41 +212,49 @@ class DiscordBot(commands.Bot):
 
     async def on_command_completion(self, context: Context) -> None:
         """
-        The code in this event is executed every time a normal command has been *successfully* executed.
+        このイベントのコードは、通常のコマンドが*正常に*実行されるたびに実行されます。
 
-        :param context: The context of the command that has been executed.
+        :param context: 実行されたコマンドのコンテキスト。
         """
         full_command_name = context.command.qualified_name
         split = full_command_name.split(" ")
         executed_command = str(split[0])
         if context.guild is not None:
             self.logger.info(
-                f"Executed {executed_command} command in {context.guild.name} (ID: {context.guild.id}) by {context.author} (ID: {context.author.id})"
+                f"コマンド '{executed_command}' がサーバー '{context.guild.name}' (ID: {context.guild.id}) でユーザー '{context.author}' (ID: {context.author.id}) によって実行されました"
             )
         else:
             self.logger.info(
-                f"Executed {executed_command} command by {context.author} (ID: {context.author.id}) in DMs"
+                f"コマンド '{executed_command}' がユーザー '{context.author}' (ID: {context.author.id}) によってDMで実行されました"
             )
 
     async def on_command_error(self, context: Context, error) -> None:
         """
-        The code in this event is executed every time a normal valid command catches an error.
+        このイベントのコードは、通常の有効なコマンドがエラーをキャッチするたびに実行されます。
 
-        :param context: The context of the normal command that failed executing.
-        :param error: The error that has been faced.
+        :param context: 実行に失敗した通常のコマンドのコンテキスト。
+        :param error: 発生したエラー。
         """
         if isinstance(error, commands.CommandOnCooldown):
             minutes, seconds = divmod(error.retry_after, 60)
             hours, minutes = divmod(minutes, 60)
             hours = hours % 24
+            time_parts = []
+            if round(hours) > 0:
+                time_parts.append(f"{round(hours)}時間")
+            if round(minutes) > 0:
+                time_parts.append(f"{round(minutes)}分")
+            if round(seconds) > 0 or not time_parts:
+                time_parts.append(f"{round(seconds)}秒")
+            remaining_time = " ".join(time_parts)
             embed = discord.Embed(
-                description=f"**Please slow down** - You can use this command again in {f'{round(hours)} hours' if round(hours) > 0 else ''} {f'{round(minutes)} minutes' if round(minutes) > 0 else ''} {f'{round(seconds)} seconds' if round(seconds) > 0 else ''}.",
+                description=f"**少し待ってください** - このコマンドはあと{remaining_time}で再度使用できます。",
                 color=0xE02B2B,
             )
             await context.send(embed=embed)
         elif isinstance(error, commands.NotOwner):
             embed = discord.Embed(
-                description="You are not the owner of the bot!", color=0xE02B2B
+                description="あなたはボットの所有者ではありません！", color=0xE02B2B
             )
             await context.send(embed=embed)
             if context.guild:
@@ -258,26 +266,33 @@ class DiscordBot(commands.Bot):
                     f"{context.author} (ID: {context.author.id}) tried to execute an owner only command in the bot's DMs, but the user is not an owner of the bot."
                 )
         elif isinstance(error, commands.MissingPermissions):
+            missing_perms = ", ".join(error.missing_permissions)
             embed = discord.Embed(
-                description="You are missing the permission(s) `"
-                + ", ".join(error.missing_permissions)
-                + "` to execute this command!",
+                description="次の権限が不足しているため、このコマンドを実行できません: `"
+                + missing_perms
+                + "`",
                 color=0xE02B2B,
             )
             await context.send(embed=embed)
         elif isinstance(error, commands.BotMissingPermissions):
+            missing_perms = ", ".join(error.missing_permissions)
             embed = discord.Embed(
-                description="I am missing the permission(s) `"
-                + ", ".join(error.missing_permissions)
-                + "` to fully perform this command!",
+                description="ボットに次の権限がないため、コマンドを完全に実行できません: `"
+                + missing_perms
+                + "`",
                 color=0xE02B2B,
             )
             await context.send(embed=embed)
         elif isinstance(error, commands.MissingRequiredArgument):
+            missing_param = (
+                error.param.name if hasattr(error, "param") and error.param else None
+            )
             embed = discord.Embed(
-                title="Error!",
-                # We need to capitalize because the command arguments have no capital letter in the code and they are the first word in the error message.
-                description=str(error).capitalize(),
+                title="エラー!",
+                description=
+                f"必須の引数`{missing_param}`が指定されていません。"
+                if missing_param
+                else "必須の引数が不足しています。コマンドの使い方を確認してください。",
                 color=0xE02B2B,
             )
             await context.send(embed=embed)

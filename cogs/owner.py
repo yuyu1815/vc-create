@@ -1,9 +1,9 @@
 """
 Copyright © Krypton 2019-Present - https://github.com/kkrypt0nn (https://krypton.ninja)
-Description:
-🐍 A simple template to start to code your own and personalized Discord bot in Python
+説明:
+🐍 独自のパーソナライズされたDiscordボットをPythonでコーディングするためのシンプルなテンプレート
 
-Version: 6.4.0
+バージョン: 6.4.0
 """
 
 import discord
@@ -18,22 +18,22 @@ class Owner(commands.Cog, name="owner"):
 
     @commands.command(
         name="sync",
-        description="Synchonizes the slash commands.",
+        description="スラッシュコマンドを同期します。",
     )
-    @app_commands.describe(scope="The scope of the sync. Can be `global` or `guild`")
+    @app_commands.describe(scope="同期のスコープ。`global`または`guild`のいずれか")
     @commands.is_owner()
     async def sync(self, context: Context, scope: str) -> None:
         """
-        Synchonizes the slash commands.
+        スラッシュコマンドを同期します。
 
-        :param context: The command context.
-        :param scope: The scope of the sync. Can be `global` or `guild`.
+        :param context: コマンドのコンテキスト。
+        :param scope: 同期のスコープ。`global`または`guild`のいずれか。
         """
 
         if scope == "global":
             await context.bot.tree.sync()
             embed = discord.Embed(
-                description="Slash commands have been globally synchronized.",
+                description="スラッシュコマンドがグローバルに同期されました。",
                 color=0xBEBEFE,
             )
             await context.send(embed=embed)
@@ -42,37 +42,37 @@ class Owner(commands.Cog, name="owner"):
             context.bot.tree.copy_global_to(guild=context.guild)
             await context.bot.tree.sync(guild=context.guild)
             embed = discord.Embed(
-                description="Slash commands have been synchronized in this guild.",
+                description="スラッシュコマンドがこのギルドで同期されました。",
                 color=0xBEBEFE,
             )
             await context.send(embed=embed)
             return
         embed = discord.Embed(
-            description="The scope must be `global` or `guild`.", color=0xE02B2B
+            description="スコープは`global`または`guild`である必要があります。", color=0xE02B2B
         )
         await context.send(embed=embed)
 
     @commands.command(
         name="unsync",
-        description="Unsynchonizes the slash commands.",
+        description="スラッシュコマンドの同期を解除します。",
     )
     @app_commands.describe(
-        scope="The scope of the sync. Can be `global`, `current_guild` or `guild`"
+        scope="同期のスコープ。`global`、`current_guild`または`guild`のいずれか"
     )
     @commands.is_owner()
     async def unsync(self, context: Context, scope: str) -> None:
         """
-        Unsynchonizes the slash commands.
+        スラッシュコマンドの同期を解除します。
 
-        :param context: The command context.
-        :param scope: The scope of the sync. Can be `global`, `current_guild` or `guild`.
+        :param context: コマンドのコンテキスト。
+        :param scope: 同期のスコープ。`global`、`current_guild`または`guild`のいずれか。
         """
 
         if scope == "global":
             context.bot.tree.clear_commands(guild=None)
             await context.bot.tree.sync()
             embed = discord.Embed(
-                description="Slash commands have been globally unsynchronized.",
+                description="スラッシュコマンドのグローバル同期が解除されました。",
                 color=0xBEBEFE,
             )
             await context.send(embed=embed)
@@ -81,136 +81,136 @@ class Owner(commands.Cog, name="owner"):
             context.bot.tree.clear_commands(guild=context.guild)
             await context.bot.tree.sync(guild=context.guild)
             embed = discord.Embed(
-                description="Slash commands have been unsynchronized in this guild.",
+                description="このギルドでのスラッシュコマンドの同期が解除されました。",
                 color=0xBEBEFE,
             )
             await context.send(embed=embed)
             return
         embed = discord.Embed(
-            description="The scope must be `global` or `guild`.", color=0xE02B2B
+            description="スコープは`global`または`guild`である必要があります。", color=0xE02B2B
         )
         await context.send(embed=embed)
 
     @commands.hybrid_command(
         name="load",
-        description="Load a cog",
+        description="Cogをロードします",
     )
-    @app_commands.describe(cog="The name of the cog to load")
+    @app_commands.describe(cog="ロードするCogの名前")
     @commands.is_owner()
     async def load(self, context: Context, cog: str) -> None:
         """
-        The bot will load the given cog.
+        ボットは指定されたCogをロードします。
 
-        :param context: The hybrid command context.
-        :param cog: The name of the cog to load.
+        :param context: ハイブリッドコマンドのコンテキスト。
+        :param cog: ロードするCogの名前。
         """
         try:
             await self.bot.load_extension(f"cogs.{cog}")
         except Exception:
             embed = discord.Embed(
-                description=f"Could not load the `{cog}` cog.", color=0xE02B2B
+                description=f"モジュール`{cog}`をロードできませんでした。", color=0xE02B2B
             )
             await context.send(embed=embed)
             return
         embed = discord.Embed(
-            description=f"Successfully loaded the `{cog}` cog.", color=0xBEBEFE
+            description=f"モジュール`{cog}`を正常にロードしました。", color=0xBEBEFE
         )
         await context.send(embed=embed)
 
     @commands.hybrid_command(
         name="unload",
-        description="Unloads a cog.",
+        description="Cogをアンロードします。",
     )
-    @app_commands.describe(cog="The name of the cog to unload")
+    @app_commands.describe(cog="アンロードするCogの名前")
     @commands.is_owner()
     async def unload(self, context: Context, cog: str) -> None:
         """
-        The bot will unload the given cog.
+        ボットは指定されたCogをアンロードします。
 
-        :param context: The hybrid command context.
-        :param cog: The name of the cog to unload.
+        :param context: ハイブリッドコマンドのコンテキスト。
+        :param cog: アンロードするCogの名前。
         """
         try:
             await self.bot.unload_extension(f"cogs.{cog}")
         except Exception:
             embed = discord.Embed(
-                description=f"Could not unload the `{cog}` cog.", color=0xE02B2B
+                description=f"モジュール`{cog}`をアンロードできませんでした。", color=0xE02B2B
             )
             await context.send(embed=embed)
             return
         embed = discord.Embed(
-            description=f"Successfully unloaded the `{cog}` cog.", color=0xBEBEFE
+            description=f"モジュール`{cog}`を正常にアンロードしました。", color=0xBEBEFE
         )
         await context.send(embed=embed)
 
     @commands.hybrid_command(
         name="reload",
-        description="Reloads a cog.",
+        description="Cogを再ロードします。",
     )
-    @app_commands.describe(cog="The name of the cog to reload")
+    @app_commands.describe(cog="再ロードするCogの名前")
     @commands.is_owner()
     async def reload(self, context: Context, cog: str) -> None:
         """
-        The bot will reload the given cog.
+        ボットは指定されたCogを再ロードします。
 
-        :param context: The hybrid command context.
-        :param cog: The name of the cog to reload.
+        :param context: ハイブリッドコマンドのコンテキスト。
+        :param cog: 再ロードするCogの名前。
         """
         try:
             await self.bot.reload_extension(f"cogs.{cog}")
         except Exception:
             embed = discord.Embed(
-                description=f"Could not reload the `{cog}` cog.", color=0xE02B2B
+                description=f"モジュール`{cog}`を再読み込みできませんでした。", color=0xE02B2B
             )
             await context.send(embed=embed)
             return
         embed = discord.Embed(
-            description=f"Successfully reloaded the `{cog}` cog.", color=0xBEBEFE
+            description=f"モジュール`{cog}`を正常に再読み込みしました。", color=0xBEBEFE
         )
         await context.send(embed=embed)
 
     @commands.hybrid_command(
         name="shutdown",
-        description="Make the bot shutdown.",
+        description="ボットをシャットダウンさせます。",
     )
     @commands.is_owner()
     async def shutdown(self, context: Context) -> None:
         """
-        Shuts down the bot.
+        ボットをシャットダウンします。
 
-        :param context: The hybrid command context.
+        :param context: ハイブリッドコマンドのコンテキスト。
         """
-        embed = discord.Embed(description="Shutting down. Bye! :wave:", color=0xBEBEFE)
+        embed = discord.Embed(description="シャットダウン中です。さようなら！ :wave:", color=0xBEBEFE)
         await context.send(embed=embed)
         await self.bot.close()
 
     @commands.hybrid_command(
         name="say",
-        description="The bot will say anything you want.",
+        description="ボットがあなたの望むものを何でも言います。",
     )
-    @app_commands.describe(message="The message that should be repeated by the bot")
+    @app_commands.describe(message="ボットが繰り返すべきメッセージ")
     @commands.is_owner()
     async def say(self, context: Context, *, message: str) -> None:
         """
-        The bot will say anything you want.
+        ボットがあなたの望むものを何でも言います。
 
-        :param context: The hybrid command context.
-        :param message: The message that should be repeated by the bot.
+        :param context: ハイブリッドコマンドのコンテキスト。
+        :param message: ボットが繰り返すべきメッセージ。
         """
         await context.send(message)
 
     @commands.hybrid_command(
         name="embed",
-        description="The bot will say anything you want, but within embeds.",
+        description="ボットがあなたの望むものを何でも言いますが、埋め込みメッセージ内で言います。",
     )
-    @app_commands.describe(message="The message that should be repeated by the bot")
+    @app_commands.describe(message="ボットが繰り返すべきメッセージ")
     @commands.is_owner()
     async def embed(self, context: Context, *, message: str) -> None:
         """
-        The bot will say anything you want, but using embeds.
+        ボットがあなたの望むものを何でも言いますが、埋め込みメッセージを使用して言います。
 
-        :param context: The hybrid command context.
-        :param message: The message that should be repeated by the bot.
+        :param context: ハイブリッドコマンドのコンテキスト。
+        :param message: ボットが繰り返すべきメッセージ。
         """
         embed = discord.Embed(description=message, color=0xBEBEFE)
         await context.send(embed=embed)

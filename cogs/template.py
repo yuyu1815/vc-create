@@ -1,38 +1,38 @@
 """
 Copyright © Krypton 2019-Present - https://github.com/kkrypt0nn (https://krypton.ninja)
-Description:
-🐍 A simple template to start to code your own and personalized Discord bot in Python
+説明:
+🐍 独自のパーソナライズされたDiscordボットをPythonでコーディングするためのシンプルなテンプレート
 
-Version: 6.4.0
+バージョン: 6.4.0
 """
 
 from discord.ext import commands
 from discord.ext.commands import Context
 
 
-# Here we name the cog and create a new class for the cog.
+# ここでCogに名前を付け、Cogの新しいクラスを作成します。
 class Template(commands.Cog, name="template"):
     def __init__(self, bot) -> None:
         self.bot = bot
 
-    # Here you can just add your own commands, you'll always need to provide "self" as first parameter.
+    # ここで独自のコマンドを追加できます。常に最初のパラメータとして"self"を提供する必要があります。
 
     @commands.hybrid_command(
         name="testcommand",
-        description="This is a testing command that does nothing.",
+        description="これは何もしないテスト用コマンドです。",
     )
     async def testcommand(self, context: Context) -> None:
         """
-        This is a testing command that does nothing.
+        これは何もしないテスト用コマンドです。
 
-        :param context: The application command context.
+        :param context: アプリケーションコマンドのコンテキスト。
         """
-        # Do your stuff here
+        # ここで独自の処理を行ってください
 
-        # Don't forget to remove "pass", I added this just because there's no content in the method.
+        # "pass"を削除することを忘れないでください。メソッドに内容がないため追加しただけです。
         pass
 
 
-# And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
+# 最後にCogをボットに追加して、ロード、アンロード、再ロードし、その内容を使用できるようにします。
 async def setup(bot) -> None:
     await bot.add_cog(Template(bot))
