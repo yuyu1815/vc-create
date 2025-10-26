@@ -91,31 +91,6 @@ class Owner(commands.Cog, name="owner"):
         )
         await context.send(embed=embed)
 
-    @commands.hybrid_command(
-        name="load",
-        description="Cogをロードします",
-    )
-    @app_commands.describe(cog="ロードするCogの名前")
-    @commands.is_owner()
-    async def load(self, context: Context, cog: str) -> None:
-        """
-        ボットは指定されたCogをロードします。
-
-        :param context: ハイブリッドコマンドのコンテキスト。
-        :param cog: ロードするCogの名前。
-        """
-        try:
-            await self.bot.load_extension(f"cogs.{cog}")
-        except Exception:
-            embed = discord.Embed(
-                description=f"モジュール`{cog}`をロードできませんでした。", color=0xE02B2B
-            )
-            await context.send(embed=embed)
-            return
-        embed = discord.Embed(
-            description=f"モジュール`{cog}`を正常にロードしました。", color=0xBEBEFE
-        )
-        await context.send(embed=embed)
 
     @commands.hybrid_command(
         name="unload",
@@ -169,51 +144,8 @@ class Owner(commands.Cog, name="owner"):
         )
         await context.send(embed=embed)
 
-    @commands.hybrid_command(
-        name="shutdown",
-        description="ボットをシャットダウンさせます。",
-    )
-    @commands.is_owner()
-    async def shutdown(self, context: Context) -> None:
-        """
-        ボットをシャットダウンします。
 
-        :param context: ハイブリッドコマンドのコンテキスト。
-        """
-        embed = discord.Embed(description="シャットダウン中です。さようなら！ :wave:", color=0xBEBEFE)
-        await context.send(embed=embed)
-        await self.bot.close()
 
-    @commands.hybrid_command(
-        name="say",
-        description="ボットがあなたの望むものを何でも言います。",
-    )
-    @app_commands.describe(message="ボットが繰り返すべきメッセージ")
-    @commands.is_owner()
-    async def say(self, context: Context, *, message: str) -> None:
-        """
-        ボットがあなたの望むものを何でも言います。
-
-        :param context: ハイブリッドコマンドのコンテキスト。
-        :param message: ボットが繰り返すべきメッセージ。
-        """
-        await context.send(message)
-
-    @commands.hybrid_command(
-        name="embed",
-        description="ボットがあなたの望むものを何でも言いますが、埋め込みメッセージ内で言います。",
-    )
-    @app_commands.describe(message="ボットが繰り返すべきメッセージ")
-    @commands.is_owner()
-    async def embed(self, context: Context, *, message: str) -> None:
-        """
-        ボットがあなたの望むものを何でも言いますが、埋め込みメッセージを使用して言います。
-
-        :param context: ハイブリッドコマンドのコンテキスト。
-        :param message: ボットが繰り返すべきメッセージ。
-        """
-        embed = discord.Embed(description=message, color=0xBEBEFE)
-        await context.send(embed=embed)
 
 
 async def setup(bot) -> None:
