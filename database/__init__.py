@@ -13,6 +13,107 @@ class DatabaseManager:
     def __init__(self, *, connection: aiosqlite.Connection) -> None:
         self.connection = connection
 
+    async def migrate(self) -> None:
+        """Run lightweight migrations to keep DB schema up-to-date at startup.
+        This will auto-add any missing columns used by the bot, with safe defaults.
+        Idempotent and safe to run multiple times.
+        Limitations: SQLite cannot easily add NOT NULL constraints retroactively; we add columns
+        with defaults where possible and backfill NULLs.
+        """
+        # Helper: get existing column names for a table
+        async def _get_columns(table: str) -> set[str]:
+            async with self.connection.execute(f"PRAGMA table_info('{table}')") as cur:
+                rows = await cur.fetchall()
+                return {row[1] for row in rows}
+
+        # Helper: ensure column exists; if missing, run provided ALTER and optional backfill
+        async def _ensure_column(table: str, column: str, add_column_sql: str, backfill_sql: str | None = None) -> None:
+            cols = await _get_columns(table)
+            if column not in cols:
+                await self.connection.execute(add_column_sql)
+                await self.connection.commit()
+                if backfill_sql:
+                    await self.connection.execute(backfill_sql)
+                    await self.connection.commit()
+
+        # guild_vc_settings expected columns
+        await _ensure_column(
+            "guild_vc_settings",
+            "base_name_template",
+            "ALTER TABLE guild_vc_settings ADD COLUMN base_name_template TEXT NOT NULL DEFAULT '{user_name}のVC'",
+            "UPDATE guild_vc_settings SET base_name_template = COALESCE(base_name_template, '{user_name}のVC')",
+        )
+        await _ensure_column(
+            "guild_vc_settings",
+            "name_counter",
+            "ALTER TABLE guild_vc_settings ADD COLUMN name_counter INTEGER NOT NULL DEFAULT 0",
+            "UPDATE guild_vc_settings SET name_counter = COALESCE(name_counter, 0)",
+        )
+        await _ensure_column(
+            "guild_vc_settings",
+            "max_channels",
+            "ALTER TABLE guild_vc_settings ADD COLUMN max_channels INTEGER NOT NULL DEFAULT 50",
+            "UPDATE guild_vc_settings SET max_channels = COALESCE(max_channels, 50)",
+        )
+        await _ensure_column(
+            "guild_vc_settings",
+            "delete_delay",
+            "ALTER TABLE guild_vc_settings ADD COLUMN delete_delay INTEGER NOT NULL DEFAULT 30",
+            "UPDATE guild_vc_settings SET delete_delay = COALESCE(delete_delay, 30)",
+        )
+        await _ensure_column(
+            "guild_vc_settings",
+            "log_channel_id",
+            "ALTER TABLE guild_vc_settings ADD COLUMN log_channel_id TEXT",
+            None,
+        )
+
+        # vc_base_channels expected columns
+        await _ensure_column(
+            "vc_base_channels",
+            "creator_id",
+            "ALTER TABLE vc_base_channels ADD COLUMN creator_id TEXT",
+            None,
+        )
+        await _ensure_column(
+            "vc_base_channels",
+            "name_template",
+            "ALTER TABLE vc_base_channels ADD COLUMN name_template TEXT",
+            None,
+        )
+        await _ensure_column(
+            "vc_base_channels",
+            "name_counter",
+            "ALTER TABLE vc_base_channels ADD COLUMN name_counter INTEGER NOT NULL DEFAULT 1",
+            "UPDATE vc_base_channels SET name_counter = COALESCE(name_counter, 1)",
+        )
+        await _ensure_column(
+            "vc_base_channels",
+            "created_at",
+            "ALTER TABLE vc_base_channels ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+            "UPDATE vc_base_channels SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP)",
+        )
+
+        # vc_generated_channels expected columns
+        await _ensure_column(
+            "vc_generated_channels",
+            "creator_id",
+            "ALTER TABLE vc_generated_channels ADD COLUMN creator_id TEXT",
+            None,
+        )
+        await _ensure_column(
+            "vc_generated_channels",
+            "created_at",
+            "ALTER TABLE vc_generated_channels ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+            "UPDATE vc_generated_channels SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP)",
+        )
+        await _ensure_column(
+            "vc_generated_channels",
+            "deleted_at",
+            "ALTER TABLE vc_generated_channels ADD COLUMN deleted_at TIMESTAMP",
+            None,
+        )
+
     # -----------------
     # 既存のテンプレ機能
     # -----------------
@@ -274,3 +375,51 @@ class DatabaseManager:
             (str(channel_id),),
         )
         await self.connection.commit()
+
+    # ---- New per-base counters ----
+    async def get_next_base_counter(self, base_channel_id: int) -> int:
+        """Atomically get current count for base channel and increment it.
+        Returns the current value before increment. If row missing, defaults to 1 and then increments to 2.
+        """
+        # Ensure base channel row exists
+        await self.connection.execute(
+            "INSERT OR IGNORE INTO vc_base_channels(channel_id, guild_id) VALUES(?, '')",
+            (str(base_channel_id),),
+        )
+        await self.connection.commit()
+        async with self.connection.execute(
+            """
+            UPDATE vc_base_channels
+            SET name_counter = COALESCE(name_counter, 1) + 1
+            WHERE channel_id = ?
+            RETURNING name_counter - 1
+            """,
+            (str(base_channel_id),),
+        ) as cursor:
+            row = await cursor.fetchone()
+            await self.connection.commit()
+            # If somehow no row, return 1
+            return int(row[0]) if row and row[0] is not None else 1
+
+    async def reset_base_counter(self, base_channel_id: int) -> None:
+        await self.connection.execute(
+            "UPDATE vc_base_channels SET name_counter = 1 WHERE channel_id = ?",
+            (str(base_channel_id),),
+        )
+        await self.connection.commit()
+
+    async def get_base_channel_id_for_generated(self, generated_channel_id: int) -> int | None:
+        async with self.connection.execute(
+            "SELECT base_channel_id FROM vc_generated_channels WHERE channel_id=?",
+            (str(generated_channel_id),),
+        ) as cursor:
+            row = await cursor.fetchone()
+            return int(row[0]) if row and row[0] is not None else None
+
+    async def count_active_generated_channels_for_base(self, base_channel_id: int) -> int:
+        async with self.connection.execute(
+            "SELECT COUNT(*) FROM vc_generated_channels WHERE base_channel_id=? AND deleted_at IS NULL",
+            (str(base_channel_id),),
+        ) as cursor:
+            row = await cursor.fetchone()
+            return int(row[0]) if row and row[0] is not None else 0

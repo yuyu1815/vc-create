@@ -284,6 +284,15 @@ class Voice(commands.Cog, name="voice"):
                 if channel and len(channel.members) == 0:
                     await channel.delete(reason="自動生成VCの自動削除")
                     await self.bot.database.mark_generated_channel_deleted(channel.id)
+                    # すべての生成VC（このベース由来）が消えたらカウンタを1に戻す
+                    try:
+                        base_id = await self.bot.database.get_base_channel_id_for_generated(channel.id)
+                        if base_id is not None:
+                            remain = await self.bot.database.count_active_generated_channels_for_base(base_id)
+                            if remain == 0:
+                                await self.bot.database.reset_base_counter(base_id)
+                    except Exception:
+                        pass
                     await self._log(channel.guild, f"{channel.name} を自動削除しました。")
             except asyncio.CancelledError:
                 return
@@ -300,8 +309,12 @@ class Voice(commands.Cog, name="voice"):
         """複製VCの名前を決める。ベースVCにテンプレートがあればそれを、なければギルド既定を使用。"""
         guild = source.guild
         settings = await self.bot.database.get_or_create_guild_vc_settings(guild.id)
-        # {count} はギルドごとに0からの連番
-        next_count = await self.bot.database.increment_and_get_name_counter(guild.id)
+        # {count} はベースVC単位の連番（テンプレで作成されたVCに連動）
+        # ベースVCでない場合はギルド全体のカウンタを使うフォールバック
+        if await self.bot.database.is_base_channel(source.id):
+            next_count = await self.bot.database.get_next_base_counter(source.id)
+        else:
+            next_count = await self.bot.database.increment_and_get_name_counter(guild.id)
         user = member or guild.me  # フォールバックでBot自身
         # ベースVCが個別テンプレートを持っていれば優先
         base_tpl = None

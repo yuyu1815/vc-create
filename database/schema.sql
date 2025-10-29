@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `vc_base_channels` (
   `guild_id` TEXT NOT NULL,
   `creator_id` TEXT,
   `name_template` TEXT,
+  `name_counter` INTEGER NOT NULL DEFAULT 1,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

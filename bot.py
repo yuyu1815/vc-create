@@ -198,6 +198,11 @@ class DiscordBot(commands.Bot):
                 f"{os.path.realpath(os.path.dirname(__file__))}/database/database.db"
             )
         )
+        # Run DB migrations before loading cogs
+        try:
+            await self.database.migrate()
+        except Exception as e:
+            self.logger.warning(f"DB migration skipped/failed: {e}")
         await self.load_cogs()
         await self.tree.sync()
         self.status_task.start()
